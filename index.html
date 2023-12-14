@@ -84,8 +84,8 @@
             <div class="name">{{ `${ore.name} (${ore.volume}m³)` }}</div>
             <div class="currency">{{ `${Number.parseFloat(ore.buy).toFixed(2)} ISK` }}</div>
             <div class="currency" :class="{ italic: ore.name.includes('Compressed') }">{{ formatNumberToMoney(ore.priceByCubicMeter) }}</div>
-            <div class="currency" :class="{ orange: i === 0 }">{{ formatNumberToMoney(ore.selling5000) }}</div>
-            <div class="currency">{{ formatNumberToMoney(ore.selling6164) }}</div>
+            <div class="currency">{{ formatNumberToMoney(ore.selling5000) }}</div>
+            <div class="currency" :class="{ orange: i === 0 }">{{ formatNumberToMoney(ore.selling6164) }}</div>
         </div>
     </div>
 </body>
