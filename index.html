@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         body {
+            margin: 0;
             font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
             font-size: 21px;
             color: #fff;
@@ -62,6 +63,18 @@
             color: #FF6B00;
         }
 
+        .veldspar {
+            color: #a09480;
+        }
+
+        .scordite {
+            color: #35322c;
+        }
+
+        .pyroxeres {
+            color: #e1dccf;
+        }
+
         .italic {
             font-style: italic;
         }
@@ -71,21 +84,31 @@
 
 <body>
     <div id="app">
-        <h1>Asteroids in Amarr</h1>
+        <h1 style="margin-top: 0;">Asteroids in Amarr</h1>
         <button @click="fetchData" :disabled="wait" class="btn">Refresh</button>
-        <div class="grid" style="margin-bottom: .75rem; font-weight: bold;">
-            <div class="name">Name (volume)</div>
-            <div class="currency">Unit price</div>
-            <div class="currency">Price /m³</div>
-            <div class="currency">Sell 5000m³</div>
-            <div class="currency">Sell 6164m³</div>
-        </div>
-        <div v-for="(ore, i) in computedData" :key="ore.id" class="grid">
-            <div class="name">{{ `${ore.name} (${ore.volume}m³)` }}</div>
-            <div class="currency">{{ `${Number.parseFloat(ore.buy).toFixed(2)} ISK` }}</div>
-            <div class="currency" :class="{ italic: ore.name.includes('Compressed') }">{{ formatNumberToMoney(ore.priceByCubicMeter) }}</div>
-            <div class="currency">{{ formatNumberToMoney(ore.selling5000) }}</div>
-            <div class="currency" :class="{ orange: i === 0 }">{{ formatNumberToMoney(ore.selling6164) }}</div>
+        <div style="background-color: rgba(127, 108, 80, 0.4); padding: 0.5rem;">
+            <div class="grid" style="margin-bottom: .75rem; font-weight: bold;">
+                <div class="name">Name (volume)</div>
+                <div class="currency">Unit price</div>
+                <div class="currency">Price /m³</div>
+                <div class="currency">Sell 5000m³</div>
+                <div class="currency">Sell 6164m³</div>
+            </div>
+            <div v-for="(ore, i) in computedData" :key="ore.id" :class="[
+                    {
+                        veldspar: ore.name.includes('Veldspar'),
+                        scordite: ore.name.includes('Scordite'),
+                        pyroxeres: ore.name.includes('Pyroxeres'),
+                    },
+                    'grid']">
+                <div class="name">{{ `${ore.name} (${ore.volume}m³)` }}</div>
+                <div class="currency">{{ `${Number.parseFloat(ore.buy).toFixed(2)} ISK` }}</div>
+                <div :class="[{ italic: ore.name.includes('Compressed') }, 'currency']">
+                    {{ formatNumberToMoney(ore.priceByCubicMeter) }}
+                </div>
+                <div :class="[{ orange: i === 0 }, 'currency']">{{ formatNumberToMoney(ore.selling5000) }}</div>
+                <div class="currency">{{ formatNumberToMoney(ore.selling6164) }}</div>
+            </div>
         </div>
     </div>
 </body>
