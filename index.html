@@ -7,72 +7,14 @@
     <title>eve-deka</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.amber.min.css" />
     <style>
-        body {
-            margin: 0;
-            font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
-            font-size: 21px;
-            color: #fff;
-            background-color: #333333;
-        }
-
-        #app {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .btn {
-            background-color: transparent;
-            border: 2px solid #F7C902;
-            border-radius: 4px;
-            padding: .5rem 1rem;
-            color: #F7C902;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-bottom: 4rem;
-        }
-
-        .btn:hover {
-            background-color: #F7C902;
-            color: #333333;
-        }
-
-        .btn:disabled {
-            opacity: .2;
-            cursor: not-allowed;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, .1);
-            margin-bottom: .25rem;
-        }
-
         .currency {
-            justify-self: end;
-        }
-
-        .name {
-            grid-column: span 3 / span 3;
+            text-align: right;
         }
 
         .orange {
             color: #FF6B00;
-        }
-
-        .veldspar {
-            color: #a09480;
-        }
-
-        .scordite {
-            color: #35322c;
-        }
-
-        .pyroxeres {
-            color: #e1dccf;
         }
 
         .italic {
@@ -82,65 +24,72 @@
     <script src="https://unpkg.com/vue@3.3.8/dist/vue.global.prod.js"></script>
 </head>
 
-<body>
-    <div id="app">
-        <h1 style="margin-top: 0;">Asteroids in Amarr</h1>
-        <button @click="fetchData" :disabled="wait" class="btn">Refresh</button>
-        <div style="background-color: rgba(127, 108, 80, 0.4); padding: 0.5rem;">
-            <div class="grid" style="margin-bottom: .75rem; font-weight: bold;">
-                <div class="name">Name (volume)</div>
-                <div class="currency">Unit price</div>
-                <div class="currency">Price /m³</div>
-                <div class="currency">Sell 5000m³</div>
-                <div class="currency">Sell 6164m³</div>
-            </div>
-            <div v-for="(ore, i) in computedData" :key="ore.id" :class="[
-                    {
-                        veldspar: ore.name.includes('Veldspar'),
-                        scordite: ore.name.includes('Scordite'),
-                        pyroxeres: ore.name.includes('Pyroxeres'),
-                    },
-                    'grid']">
-                <div class="name">{{ `${ore.name} (${ore.volume}m³)` }}</div>
-                <div class="currency">{{ `${Number.parseFloat(ore.buy).toFixed(2)} ISK` }}</div>
-                <div :class="[{ italic: ore.name.includes('Compressed') }, 'currency']">
-                    {{ formatNumberToMoney(ore.priceByCubicMeter) }}
-                </div>
-                <div :class="[{ orange: i === 0 }, 'currency']">{{ formatNumberToMoney(ore.selling5000) }}</div>
-                <div class="currency">{{ formatNumberToMoney(ore.selling6164) }}</div>
-            </div>
-        </div>
-    </div>
+<body id="app">
+    <header>
+        <nav>
+            <h1>Asteroids in Amarr</h1>
+            <button @click="fetchData" :disabled="wait" :aria-busy="wait">Refresh</button>
+        </nav>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Name (volume)</th>
+                    <th scope="col" class="currency">Unit price</th>
+                    <th scope="col" class="currency">Price /m³</th>
+                    <th scope="col" class="currency">Sell 5000m³</th>
+                    <th scope="col" class="currency">Sell 6164m³</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(ore, i) in computedData" :key="ore.id">
+                    <th scope="row">{{ `${ore.name} (${ore.volume}m³)` }}</th>
+                    <td class="currency">{{ formatCurrency(ore.buy, true) }}</td>
+                    <td :class="[{ italic: ore.name.includes('Compressed') }, 'currency']">
+                        {{ formatCurrency(ore.priceByCubicMeter) }}
+                    </td>
+                    <td :class="[{ orange: i === 0 }, 'currency']">{{ formatCurrency(ore.selling5000) }}</td>
+                    <td class="currency">{{ formatCurrency(ore.selling6164) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
 </body>
 
 <script>
-    const { createApp, ref, computed } = Vue
+    const {createApp, ref, computed} = Vue
 
     createApp({
         setup() {
             const base = [
-                { id: 1230, name: 'Veldspar', volume: 0.1 },
-                { id: 17470, name: 'Concentrated Veldspar', volume: 0.1 },
-                { id: 17471, name: 'Dense Veldspar', volume: 0.1 },
-                { id: 1228, name: 'Scordite', volume: 0.15 },
-                { id: 17463, name: 'Condensed Scordite', volume: 0.15 },
-                { id: 17464, name: 'Massive Scordite', volume: 0.15 },
-                { id: 1224, name: 'Pyroxeres', volume: 0.3 },
-                { id: 17459, name: 'Solid Pyroxeres', volume: 0.3 },
-                { id: 17460, name: 'Viscous Pyroxeres', volume: 0.3 },
-                { id: 62516, name: 'Compressed Veldspar', volume: 0.001 },
-                { id: 62517, name: 'Compressed Concentrated Veldspar', volume: 0.001 },
-                { id: 62518, name: 'Compressed Dense Veldspar', volume: 0.001 },
-                { id: 62520, name: 'Compressed Scordite', volume: 0.0015 },
-                { id: 62521, name: 'Compressed Condensed Scordite', volume: 0.0015 },
-                { id: 62522, name: 'Compressed Massive Scordite', volume: 0.0015 },
-                { id: 62524, name: 'Compressed Pyroxeres', volume: 0.003 },
-                { id: 62525, name: 'Compressed Solid Pyroxeres', volume: 0.003 },
-                { id: 62526, name: 'Compressed Viscous Pyroxeres', volume: 0.003 },
+                {id: 1230, name: 'Veldspar', volume: 0.1},
+                {id: 17470, name: 'Concentrated Veldspar', volume: 0.1},
+                {id: 17471, name: 'Dense Veldspar', volume: 0.1},
+                {id: 1228, name: 'Scordite', volume: 0.15},
+                {id: 17463, name: 'Condensed Scordite', volume: 0.15},
+                {id: 17464, name: 'Massive Scordite', volume: 0.15},
+                {id: 1224, name: 'Pyroxeres', volume: 0.3},
+                {id: 17459, name: 'Solid Pyroxeres', volume: 0.3},
+                {id: 17460, name: 'Viscous Pyroxeres', volume: 0.3},
+                {id: 62516, name: 'Compressed Veldspar', volume: 0.001},
+                {id: 62517, name: 'Compressed Concentrated Veldspar', volume: 0.001},
+                {id: 62518, name: 'Compressed Dense Veldspar', volume: 0.001},
+                {id: 62520, name: 'Compressed Scordite', volume: 0.0015},
+                {id: 62521, name: 'Compressed Condensed Scordite', volume: 0.0015},
+                {id: 62522, name: 'Compressed Massive Scordite', volume: 0.0015},
+                {id: 62524, name: 'Compressed Pyroxeres', volume: 0.003},
+                {id: 62525, name: 'Compressed Solid Pyroxeres', volume: 0.003},
+                {id: 62526, name: 'Compressed Viscous Pyroxeres', volume: 0.003},
             ]
 
-            const formatNumberToMoney = (number) => {
-                return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'ISK' }).format(number)
+            const formatCurrency = (number, fraction) => {
+                const options = {
+                    style: 'currency',
+                    currency: 'ISK',
+                    minimumFractionDigits: fraction ? 2 : 0
+                }
+                return new Intl.NumberFormat('fr-FR', options).format(number)
             }
             const fetchData = () => {
                 wait.value = true
@@ -185,7 +134,7 @@
             })
             return {
                 fetchData,
-                formatNumberToMoney,
+                formatCurrency,
                 wait,
                 data,
                 computedData,
