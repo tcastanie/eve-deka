@@ -9,25 +9,18 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.amber.min.css" />
     <style>
-        .currency {
+        table th:not(:nth-child(1)),
+        table td:not(:nth-child(1)) {
             text-align: right;
         }
-
-        .orange {
-            color: #FF6B00;
-        }
-
-        .italic {
-            font-style: italic;
-        }
     </style>
-    <script src="https://unpkg.com/vue@3.3.8/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue@3.4.18/dist/vue.global.prod.js"></script>
 </head>
 
 <body id="app">
     <header>
         <nav>
-            <h1>Asteroids in Amarr</h1>
+            <h1>Asteroids prices in Amarr</h1>
             <button @click="fetchData" :disabled="wait" :aria-busy="wait">Refresh</button>
         </nav>
     </header>
@@ -36,21 +29,23 @@
             <thead>
                 <tr>
                     <th scope="col">Name (volume)</th>
-                    <th scope="col" class="currency">Unit price</th>
-                    <th scope="col" class="currency">Price /m³</th>
-                    <th scope="col" class="currency">Sell 5000m³</th>
-                    <th scope="col" class="currency">Sell 6164m³</th>
+                    <th scope="col">Unit price</th>
+                    <th scope="col">Price /m³</th>
+                    <th scope="col">Sell 5000m³</th>
+                    <th scope="col">Sell 6164m³</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(ore, i) in computedData" :key="ore.id">
-                    <th scope="row">{{ `${ore.name} (${ore.volume}m³)` }}</th>
-                    <td class="currency">{{ formatCurrency(ore.buy, true) }}</td>
-                    <td :class="[{ italic: ore.name.includes('Compressed') }, 'currency']">
-                        {{ formatCurrency(ore.priceByCubicMeter) }}
+                <tr v-for="{ key, name, volume, buy, price, s5000, s6164, isComp } in computedData" :key>
+                    <th scope="row">{{ `${name} (${volume}m³)` }}</th>
+                    <td>{{ formatCurrency(buy, true) }}</td>
+                    <td>
+                        <span :data-tooltip="isComp ? formatCurrency(price / 100) : null">
+                            {{ formatCurrency(price) }}
+                        </span>
                     </td>
-                    <td :class="[{ orange: i === 0 }, 'currency']">{{ formatCurrency(ore.selling5000) }}</td>
-                    <td class="currency">{{ formatCurrency(ore.selling6164) }}</td>
+                    <td>{{ formatCurrency(s5000) }}</td>
+                    <td>{{ formatCurrency(s6164) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -113,24 +108,21 @@
             const computedData = computed(() => {
                 return Object.keys(data.value).map(key => {
                     const name = base.find(item => item.id === Number(key))?.name
+                    const isComp = name.includes('Compressed')
                     const volume = base.find(item => item.id === Number(key))?.volume
                     const buyMax = data.value[key].buy.max
-                    const cubicMeterPrice = (buyMax / volume)
-                    const sell5000 = cubicMeterPrice * 5000 * 0.92
-                    const sell6164 = cubicMeterPrice * 6164 * 0.92
-                    const sell50 = cubicMeterPrice * 50 * 0.92
-                    const sell61 = cubicMeterPrice * 61.64 * 0.92
+                    const cubicPrice = (buyMax / volume)
                     return {
-                        id: key,
+                        key,
                         name,
                         volume,
                         buy: buyMax,
-                        priceByCubicMeter: cubicMeterPrice,
-                        // priceByCubicMeter: name.includes('Compressed') ? cubicMeterPrice / 100 : cubicMeterPrice,
-                        selling5000: name.includes('Compressed') ? sell50 : sell5000,
-                        selling6164: name.includes('Compressed') ? sell61 : sell6164,
+                        isComp,
+                        price: cubicPrice,
+                        s5000: isComp ? cubicPrice * 50 * 0.92 : cubicPrice * 5000 * 0.92,
+                        s6164: isComp ? cubicPrice * 61.64 * 0.92 : cubicPrice * 6164 * 0.92,
                     }
-                }).sort((a, b) => b.selling5000 - a.selling5000)
+                }).sort((a, b) => b.s5000 - a.s5000)
             })
             return {
                 fetchData,
