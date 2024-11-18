@@ -14,7 +14,6 @@
             text-align: right;
         }
     </style>
-    <script src="https://unpkg.com/vue@3.4.18/dist/vue.global.prod.js"></script>
 </head>
 
 <body id="app">
@@ -52,33 +51,33 @@
     </main>
 </body>
 
-<script>
-    const {createApp, ref, computed} = Vue
+<script type="module">
+    import { createApp, ref, computed } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js'
 
     createApp({
         setup() {
             const base = [
-                {id: 1230, name: 'Veldspar', volume: 0.1},
-                {id: 17470, name: 'Concentrated Veldspar', volume: 0.1},
-                {id: 17471, name: 'Dense Veldspar', volume: 0.1},
-                {id: 1228, name: 'Scordite', volume: 0.15},
-                {id: 17463, name: 'Condensed Scordite', volume: 0.15},
-                {id: 17464, name: 'Massive Scordite', volume: 0.15},
-                {id: 1224, name: 'Pyroxeres', volume: 0.3},
-                {id: 17459, name: 'Solid Pyroxeres', volume: 0.3},
-                {id: 17460, name: 'Viscous Pyroxeres', volume: 0.3},
-                {id: 62516, name: 'Compressed Veldspar', volume: 0.001},
-                {id: 62517, name: 'Compressed Concentrated Veldspar', volume: 0.001},
-                {id: 62518, name: 'Compressed Dense Veldspar', volume: 0.001},
-                {id: 62520, name: 'Compressed Scordite', volume: 0.0015},
-                {id: 62521, name: 'Compressed Condensed Scordite', volume: 0.0015},
-                {id: 62522, name: 'Compressed Massive Scordite', volume: 0.0015},
-                {id: 62524, name: 'Compressed Pyroxeres', volume: 0.003},
-                {id: 62525, name: 'Compressed Solid Pyroxeres', volume: 0.003},
-                {id: 62526, name: 'Compressed Viscous Pyroxeres', volume: 0.003},
+                { id: 1230, name: 'Veldspar', volume: 0.1 },
+                { id: 17470, name: 'Concentrated Veldspar', volume: 0.1 },
+                { id: 17471, name: 'Dense Veldspar', volume: 0.1 },
+                { id: 1228, name: 'Scordite', volume: 0.15 },
+                { id: 17463, name: 'Condensed Scordite', volume: 0.15 },
+                { id: 17464, name: 'Massive Scordite', volume: 0.15 },
+                { id: 1224, name: 'Pyroxeres', volume: 0.3 },
+                { id: 17459, name: 'Solid Pyroxeres', volume: 0.3 },
+                { id: 17460, name: 'Viscous Pyroxeres', volume: 0.3 },
+                { id: 62516, name: 'Compressed Veldspar', volume: 0.001 },
+                { id: 62517, name: 'Compressed Concentrated Veldspar', volume: 0.001 },
+                { id: 62518, name: 'Compressed Dense Veldspar', volume: 0.001 },
+                { id: 62520, name: 'Compressed Scordite', volume: 0.0015 },
+                { id: 62521, name: 'Compressed Condensed Scordite', volume: 0.0015 },
+                { id: 62522, name: 'Compressed Massive Scordite', volume: 0.0015 },
+                { id: 62524, name: 'Compressed Pyroxeres', volume: 0.003 },
+                { id: 62525, name: 'Compressed Solid Pyroxeres', volume: 0.003 },
+                { id: 62526, name: 'Compressed Viscous Pyroxeres', volume: 0.003 },
             ]
 
-            const formatCurrency = (number, fraction) => {
+            const formatCurrency = (number, fraction = false) => {
                 const options = {
                     style: 'currency',
                     currency: 'ISK',
@@ -86,13 +85,18 @@
                 }
                 return new Intl.NumberFormat('fr-FR', options).format(number)
             }
-            const fetchData = () => {
+
+            const fetchData = (types) => {
                 wait.value = true
-                fetch('https://market.fuzzwork.co.uk/aggregates/?region=60008494&types=' + types)
-                    .then(response => response.json())
-                    .then((json) => {
-                        data.value = json
+                fetch(`https://market.fuzzwork.co.uk/aggregates/?region=60008494&types=${types}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Response ko')
+                        }
+                        return response.json();
                     })
+                    .then(json => data.value = json)
+                    .catch(error => console.error('Fetch error:', error))
                     .finally(() => {
                         setTimeout(() => {
                             wait.value = false
@@ -103,7 +107,7 @@
             const wait = ref(false)
             const data = ref({})
             const types = base.map(item => item.id).join(',')
-            fetchData()
+            fetchData(types)
 
             const computedData = computed(() => {
                 return Object.keys(data.value).map(key => {
@@ -124,6 +128,7 @@
                     }
                 }).sort((a, b) => b.s5000 - a.s5000)
             })
+
             return {
                 fetchData,
                 formatCurrency,
