@@ -30,12 +30,12 @@
                     <th scope="col">Name (volume)</th>
                     <th scope="col">Unit price</th>
                     <th scope="col">Price /m³</th>
-                    <th scope="col">Sell 5000m³</th>
-                    <th scope="col">Sell 6164m³</th>
+                    <th scope="col">Sell 5 000m³</th>
+                    <th scope="col">Sell 31 625m³</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="{ key, name, volume, buy, price, s5000, s6164, isComp } in computedData" :key>
+                <tr v-for="{ key, name, volume, buy, price, s5000, s31625, isComp } in computedData" :key>
                     <th scope="row">{{ `${name} (${volume}m³)` }}</th>
                     <td>{{ formatCurrency(buy, true) }}</td>
                     <td>
@@ -44,7 +44,7 @@
                         </span>
                     </td>
                     <td>{{ formatCurrency(s5000) }}</td>
-                    <td>{{ formatCurrency(s6164) }}</td>
+                    <td>{{ formatCurrency(s31625) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -124,9 +124,9 @@
                         isComp,
                         price: cubicPrice,
                         s5000: isComp ? cubicPrice * 50 * 0.92 : cubicPrice * 5000 * 0.92,
-                        s6164: isComp ? cubicPrice * 61.64 * 0.92 : cubicPrice * 6164 * 0.92,
+                        s31625: isComp ? cubicPrice * 316.25 * 0.92 : cubicPrice * 31625 * 0.92,
                     }
-                }).sort((a, b) => b.s5000 - a.s5000)
+                }).sort((a, b) => b.s31625 - a.s31625)
             })
 
             return {
